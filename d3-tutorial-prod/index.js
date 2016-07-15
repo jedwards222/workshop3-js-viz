@@ -18,7 +18,10 @@ window.onload = function(){
   }
 
   // ADD THE attributesEnter HERE!
-  // var attributesEnter = ;
+  var attributes = [{color: 'red', r: 40, cx: 100},  //example line
+                  {color: 'blue', r: 100, cx:20},
+                  {color: 'green', r: 10, cx:50},
+                  {color: 'purple', r: 1, cx:140}];
 
   var zoom = d3.behavior.zoom()
                       .scaleExtent([1, 5])
@@ -28,7 +31,7 @@ window.onload = function(){
   var svgMap = d3.select("svg.map").call(zoom);
 
   var circles = svgCircles.selectAll('circle')
-                          .data(attributesEnter)
+                          .data(attributes)
                           .enter()
                           .append("circle")
                           .attr('fill', color)
@@ -37,10 +40,34 @@ window.onload = function(){
                           .attr('cy', '50px');
 
   // ADD THE attributesExit HERE! Remember to repeat at least one of the elements of attributesEnter
-  // var attributesExit = ;
-  //
+  // var attributesExit = [{color: 'red', r: 40, cx: 100}];
+  // //
   // svgCircles.selectAll('circle')
   //             .data(attributesExit)
   //             .exit()
   //             .attr("fill", changeColor);
+
+
+  d3.json("usa.json", function(error, usa) {
+    if (error) return console.error(error);
+
+    var scale = 800;  // around 800 should be fine
+    var center = [39.8282, 98.5795];
+    var zoomOffset = 0.0;  // the amount the zoom center should deviate from the map's center
+
+    zoom.center(center.map(function(el){return el + zoomOffset;}));
+
+    var usaObject = usa.objects.layer1;
+    var topoUsaFeatures = topojson.feature(usa, usaObject);
+
+    var projectionLittle = d3.geo.mercator()
+                                .scale(scale)
+                                .center(center);
+
+    var path = d3.geo.path()
+                      .projection(projectionLittle);
+                      svgMap.append("path")
+                      .datum(topoUsaFeatures)
+                      .attr("d", path);
+    });
 };
